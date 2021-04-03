@@ -27,7 +27,7 @@ jobs:
               exit 1
             fi
           done
-          go build .
+          go build twitter-action.go
           git fetch --prune --unshallow
           tag=$(git describe --tags)
           message="$(git for-each-ref refs/tags/$tag --format='%(contents)')"
@@ -37,11 +37,16 @@ jobs:
           echo "$release"
           echo "${tag}" > version
           rm -rf .git
-          .github/workflows/upload-github-release-asset.sh github_api_token=${{ secrets.GIT_TOKEN }} owner=mathew-fleisch repo=twitter-action tag=${tag} filename=./twitter-action
           echo "$REGISTRY_PASSWORD" | docker login ${REGISTRY_URL} -u="$REGISTRY_USERNAME" --password-stdin
           docker build -t twitter-action-local .
           docker tag twitter-action-local ${REGISTRY_URL}/${REGISTRY_APPNAME}:${tag}
           docker push ${REGISTRY_URL}/${REGISTRY_APPNAME}:${tag}
+          if [[ -f "./twitter-action" ]]; then
+            echo "Add go-binary to release: $tag"
+            .github/workflows/upload-github-release-asset.sh github_api_token=${{ secrets.GIT_TOKEN }} owner=mathew-fleisch repo=twitter-action tag=${tag} filename=./twitter-action
+          else
+            echo "Was not able to add go-binary to release..."
+          fi
           cd ..
           tar -zcvf twitter-action.tar.gz twitter-action
           mv twitter-action.tar.gz twitter-action/.
