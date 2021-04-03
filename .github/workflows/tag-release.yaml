@@ -1,0 +1,50 @@
+name: Release twitter-action
+on:
+  push:
+    tags:
+      - 'v*'
+jobs:
+  build:
+    name: Release twitter-action
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: "Release twitter-action"
+        env:
+          REGISTRY_USERNAME: ${{ secrets.REGISTRY_USERNAME }}
+          REGISTRY_PASSWORD: ${{ secrets.REGISTRY_PASSWORD }}
+          REGISTRY_URL: ${{ secrets.REGISTRY_URL }}
+          REGISTRY_APPNAME: ${{ secrets.REGISTRY_APPNAME }}
+          FORK_OWNER: ${{ secrets.FORK_OWNER }}
+          GIT_TOKEN: ${{ secrets.GIT_TOKEN }}
+          GITHUB_CONTEXT: ${{ toJson(github) }}
+        run: |
+          expected="REGISTRY_USERNAME REGISTRY_PASSWORD REGISTRY_URL REGISTRY_APPNAME FORK_OWNER GIT_TOKEN"
+          for expect in $expected; do
+            if [[ -z "${!expect}" ]]; then
+              echo "Missing Github Secret: $expect"
+              echo "See read-me about automation to set this up in your fork"
+              exit 1
+            fi
+          done
+          go build .
+          tag=$(git describe --tags)
+          message="$(git for-each-ref refs/tags/$tag --format='%(contents)')"
+          name=$(echo "$message" | head -n1)
+          # Create a release
+          release=$(curl -XPOST -H "Authorization:token $GIT_TOKEN" --data "{\"tag_name\": \"$tag\", \"target_commitish\": \"main\", \"name\": \"twitter-action-${tag}\", \"body\": \"$name\", \"draft\": false, \"prerelease\": false}" https://api.github.com/repos/${FORK_OWNER}/twitter-action/releases)
+          echo "$release"
+          echo "${tag}" > version
+          rm -rf .git
+          echo "$REGISTRY_PASSWORD" | docker login ${REGISTRY_URL} -u="$REGISTRY_USERNAME" --password-stdin
+          docker build -t twitter-action-local .
+          docker tag twitter-action-local ${REGISTRY_URL}/${REGISTRY_APPNAME}:${tag}
+          docker push ${REGISTRY_URL}/${REGISTRY_APPNAME}:${tag}
+          cd ..
+          tar -zcvf twitter-action.tar.gz twitter-action
+          mv twitter-action.tar.gz twitter-action/.
+      - name: Upload tarball
+        uses: actions/upload-artifact@v1
+        with:
+          name: twitter-action.tar.gz
+          path: twitter-action.tar.gz

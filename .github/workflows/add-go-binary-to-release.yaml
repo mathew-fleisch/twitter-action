@@ -1,11 +1,9 @@
-on:
-  push:
-    tags:
-      - 'v*'
-
+on: 
+  release:
+    types: [created]
 jobs:
   releases-matrix:
-    name: Release Go Binary
+    name: Add Go Binary To Release
     runs-on: ubuntu-latest
     strategy:
       matrix:
