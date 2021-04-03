@@ -28,6 +28,7 @@ jobs:
             fi
           done
           go build .
+          git fetch --prune --unshallow
           tag=$(git describe --tags)
           message="$(git for-each-ref refs/tags/$tag --format='%(contents)')"
           name=$(echo "$message" | head -n1)
