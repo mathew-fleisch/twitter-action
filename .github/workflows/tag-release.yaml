@@ -37,6 +37,7 @@ jobs:
           echo "$release"
           echo "${tag}" > version
           rm -rf .git
+          .github/workflows/upload-github-release-asset.sh github_api_token=${{ secrets.GIT_TOKEN }} owner=mathew-fleisch repo=twitter-action tag=${tag} filename=./twitter-action
           echo "$REGISTRY_PASSWORD" | docker login ${REGISTRY_URL} -u="$REGISTRY_USERNAME" --password-stdin
           docker build -t twitter-action-local .
           docker tag twitter-action-local ${REGISTRY_URL}/${REGISTRY_APPNAME}:${tag}
@@ -49,15 +50,3 @@ jobs:
         with:
           name: twitter-action.tar.gz
           path: twitter-action.tar.gz
-  releases-matrix:
-    name: Add Go Binary To Release
-    needs: build
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v2
-    - uses: wangyoucao577/go-release-action@v1.16
-      with:
-        github_token: ${{ secrets.GIT_TOKEN }}
-        goos: linux
-        goarch: amd64
-        extra_files: LICENSE README.md
