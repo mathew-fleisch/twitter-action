@@ -40,7 +40,10 @@ jobs:
           go build twitter-action.go
           echo "Creating git release..."
           # Create a release
-          curl_post="curl -XPOST -H \"Authorization: token $GIT_TOKEN\" --data '{\"tag_name\": \"'$tag'\", \"target_commitish\": \"master\", \"name\": \"twitter-action-'$tag'\", \"body\": \"'$name'\", \"draft\": false, \"prerelease\": false}' https://api.github.com/repos/${FORK_OWNER}/twitter-action/releases"
+          curl_data='{"tag_name": "'$tag'", "target_commitish": "master", "name": "twitter-action-'$tag'", "body": "'$name'", "draft": false, "prerelease": false}'
+          echo "Data: $curl_data"
+          echo "$curl_data" | jq '.'
+          curl_post="curl -XPOST -H "Content-Type: application/json" -H \"Authorization: token $GIT_TOKEN\" --data "$curl_data" https://api.github.com/repos/${FORK_OWNER}/twitter-action/releases"
           echo "$curl_post"
           echo "$($curl_post)"
           if [[ -f "./twitter-action" ]]; then
