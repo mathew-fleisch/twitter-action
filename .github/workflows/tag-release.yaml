@@ -15,12 +15,11 @@ jobs:
           REGISTRY_PASSWORD: ${{ secrets.REGISTRY_PASSWORD }}
           REGISTRY_URL: ${{ secrets.REGISTRY_URL }}
           REGISTRY_APPNAME: ${{ secrets.REGISTRY_APPNAME }}
-          FORK_OWNER: ${{ secrets.FORK_OWNER }}
           GIT_TOKEN: ${{ secrets.GIT_TOKEN }}
           GITHUB_CONTEXT: ${{ toJson(github) }}
         run: |
           echo "Check environment variables are set..."
-          expected="REGISTRY_USERNAME REGISTRY_PASSWORD REGISTRY_URL REGISTRY_APPNAME FORK_OWNER GIT_TOKEN"
+          expected="REGISTRY_USERNAME REGISTRY_PASSWORD REGISTRY_URL REGISTRY_APPNAME GIT_TOKEN"
           for expect in $expected; do
             if [[ -z "${!expect}" ]]; then
               echo "Missing Github Secret: $expect"
@@ -43,9 +42,9 @@ jobs:
           curl_data='{"tag_name": "'$tag'", "target_commitish": "master", "name": "twitter-action-'$tag'", "body": "'$name'", "draft": false, "prerelease": false}'
           echo "Data: $curl_data"
           echo "$curl_data" | jq '.'
-          curl_post="curl -XPOST -H \"Content-Type: application/json\" -H \"Authorization: token $GIT_TOKEN\" --data '$curl_data' https://api.github.com/repos/${FORK_OWNER}/twitter-action/releases"
+          curl_post="curl -XPOST -H \"Content-Type: application/json\" -H \"Authorization: token $GIT_TOKEN\" --data '$curl_data' https://api.github.com/repos/mathew-fleisch/twitter-action/releases"
           echo "$curl_post"
-          echo $("$curl_post")
+          eval $curl_post
           if [[ -f "./twitter-action" ]]; then
             echo "Add go-binary to release: $tag"
             .github/workflows/upload-github-release-asset.sh github_api_token=${{ secrets.GIT_TOKEN }} owner=mathew-fleisch repo=twitter-action tag=${tag} filename=./twitter-action
