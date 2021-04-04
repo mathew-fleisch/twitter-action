@@ -40,7 +40,7 @@ jobs:
           go build twitter-action.go
           echo "Creating git release..."
           # Create a release
-          release=$(curl -XPOST -H "Authorization:token $GIT_TOKEN" --data "{\"tag_name\": \"$tag\", \"target_commitish\": \"main\", \"name\": \"twitter-action-${tag}\", \"body\": \"$name\", \"draft\": false, \"prerelease\": false}" https://api.github.com/repos/${FORK_OWNER}/twitter-action/releases)
+          release=$(curl -XPOST -H "Authorization:token $GIT_TOKEN" --data "{\"tag_name\": \"$tag\", \"target_commitish\": \"master\", \"name\": \"twitter-action-${tag}\", \"body\": \"$name\", \"draft\": false, \"prerelease\": false}" https://api.github.com/repos/${FORK_OWNER}/twitter-action/releases)
           echo "$release"
           if [[ -f "./twitter-action" ]]; then
             echo "Add go-binary to release: $tag"
