@@ -35,8 +35,13 @@ jobs:
           echo "Tag: $tag"
           echo "Message: $message"
           echo "Name: $name"
-          echo "Building go-binary..."
-          go build twitter-action.go
+          echo "Login to container registry"
+          echo "$REGISTRY_PASSWORD" | docker login ${REGISTRY_URL} -u="$REGISTRY_USERNAME" --password-stdin
+          echo "Building docker container"
+          docker build -t twitter-action-local .
+          docker tag twitter-action-local ${REGISTRY_URL}/${REGISTRY_APPNAME}:${tag}
+          container_id=$(docker create twitter-action-local:latest)
+          docker cp $container_id:/usr/bin/twitter-action ./twitter-action
           echo "Creating git release..."
           # Create a release
           curl_data='{"tag_name": "'$tag'", "target_commitish": "master", "name": "twitter-action-'$tag'", "body": "'$name'", "draft": false, "prerelease": false}'
@@ -51,12 +56,6 @@ jobs:
           else
             echo "Was not able to add go-binary to release..."
           fi
-          echo "Login to container registry"
-          rm -rf .git
-          echo "$REGISTRY_PASSWORD" | docker login ${REGISTRY_URL} -u="$REGISTRY_USERNAME" --password-stdin
-          echo "Building docker container"
-          docker build -t twitter-action-local .
-          docker tag twitter-action-local ${REGISTRY_URL}/${REGISTRY_APPNAME}:${tag}
           echo "Pushing docker container"
           docker push ${REGISTRY_URL}/${REGISTRY_APPNAME}:${tag}
           cd ..
