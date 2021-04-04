@@ -19,6 +19,7 @@ jobs:
           GIT_TOKEN: ${{ secrets.GIT_TOKEN }}
           GITHUB_CONTEXT: ${{ toJson(github) }}
         run: |
+          echo "Check environment variables are set..."
           expected="REGISTRY_USERNAME REGISTRY_PASSWORD REGISTRY_URL REGISTRY_APPNAME FORK_OWNER GIT_TOKEN"
           for expect in $expected; do
             if [[ -z "${!expect}" ]]; then
@@ -27,26 +28,34 @@ jobs:
               exit 1
             fi
           done
-          go build twitter-action.go
+          echo "git fetch --prune --unshallow (to make sure all tags are downloaded to action)"
           git fetch --prune --unshallow
           tag=$(git describe --tags)
           message="$(git for-each-ref refs/tags/$tag --format='%(contents)')"
           name=$(echo "$message" | head -n1)
+          echo "Tag: $tag"
+          echo "Message: $message"
+          echo "Name: $name"
+          echo "Building go-binary..."
+          go build twitter-action.go
+          echo "Creating git release..."
           # Create a release
           release=$(curl -XPOST -H "Authorization:token $GIT_TOKEN" --data "{\"tag_name\": \"$tag\", \"target_commitish\": \"main\", \"name\": \"twitter-action-${tag}\", \"body\": \"$name\", \"draft\": false, \"prerelease\": false}" https://api.github.com/repos/${FORK_OWNER}/twitter-action/releases)
           echo "$release"
-          echo "${tag}" > version
-          rm -rf .git
-          echo "$REGISTRY_PASSWORD" | docker login ${REGISTRY_URL} -u="$REGISTRY_USERNAME" --password-stdin
-          docker build -t twitter-action-local .
-          docker tag twitter-action-local ${REGISTRY_URL}/${REGISTRY_APPNAME}:${tag}
-          docker push ${REGISTRY_URL}/${REGISTRY_APPNAME}:${tag}
           if [[ -f "./twitter-action" ]]; then
             echo "Add go-binary to release: $tag"
             .github/workflows/upload-github-release-asset.sh github_api_token=${{ secrets.GIT_TOKEN }} owner=mathew-fleisch repo=twitter-action tag=${tag} filename=./twitter-action
           else
             echo "Was not able to add go-binary to release..."
           fi
+          echo "Login to container registry"
+          rm -rf .git
+          echo "$REGISTRY_PASSWORD" | docker login ${REGISTRY_URL} -u="$REGISTRY_USERNAME" --password-stdin
+          echo "Building docker container"
+          docker build -t twitter-action-local .
+          docker tag twitter-action-local ${REGISTRY_URL}/${REGISTRY_APPNAME}:${tag}
+          echo "Pushing docker container"
+          docker push ${REGISTRY_URL}/${REGISTRY_APPNAME}:${tag}
           cd ..
           tar -zcvf twitter-action.tar.gz twitter-action
           mv twitter-action.tar.gz twitter-action/.
