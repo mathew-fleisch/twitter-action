@@ -63,7 +63,7 @@ jobs:
             echo "Release Response: $release_response"
             echo "$release_response" | jq '.'
             # If the release was created, the json response will contain an id
-            release_id=$(echo "$release_resposne" | jq -r '.id')
+            release_id=$(echo "$release_response" | jq -r '.id')
             echo "Release ID: $release_id"
             if [[ -n $release_id ]]; then
               # Add the go-binary, that was extracted from the docker build to the git release assets
