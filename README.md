@@ -23,7 +23,7 @@ export TWITTER_CONSUMER_KEY=xxx
 export TWITTER_CONSUMER_SECRET=xxx
 export TWITTER_ACCESS_TOKEN=xxx
 export TWITTER_ACCESS_SECRET=xxx
-./twitter-action -message "Hello Twitter :)"
+./twitter-action -message "This is neat https://github.com/mathew-fleisch/blog"
 ```
 
 ## Docker
@@ -36,14 +36,14 @@ docker run --rm -e TWITTER_CONSUMER_KEY=${TWITTER_CONSUMER_KEY} \
        -e TWITTER_CONSUMER_SECRET=${TWITTER_CONSUMER_SECRET} \
        -e TWITTER_ACCESS_TOKEN=${TWITTER_ACCESS_TOKEN} \
        -e TWITTER_ACCESS_SECRET=${TWITTER_ACCESS_SECRET} \
-       mathew-fleisch/twitter-action -message "Hello Twitter :)"
+       mathew-fleisch/twitter-action -message "This is neat https://github.com/mathew-fleisch/blog"
 ```
 
 ## Test
 ```bash
-./twitter-action -message "Here is the big news: I removed the file functionality" -dry
+./twitter-action -message "This is neat https://github.com/mathew-fleisch/blog" -dry
 2021/03/30 16:04:47 Logging in, creating client and updating status.
-2021/03/30 16:04:47 Status updated with: Here is the big news: I removed the file functionality
+2021/03/30 16:04:47 Status updated with: This is neat https://github.com/mathew-fleisch/blog
 ```
 
 ## Releases
