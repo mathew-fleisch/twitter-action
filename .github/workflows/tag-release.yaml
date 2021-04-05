@@ -53,9 +53,11 @@ jobs:
             # Build json with tag + commit message
             curl_data='{"tag_name": "'$tag'", "target_commitish": "master", "name": "twitter-action-'$tag'", "body": "'$commit_message'", "draft": false, "prerelease": false}'
             # Sanity check (does json render through jq)
-            echo "Data: $curl_data" | jq '.'
+            echo "Data: $curl_data"
+            echo "parsed json: $curl_data" | jq '.'
             # Build, print and execute curl to create a new release with the github api 
             curl_post="curl -XPOST -H \"Content-Type: application/json\" -H \"Authorization: token $GIT_TOKEN\" --data '$curl_data' https://api.github.com/repos/mathew-fleisch/twitter-action/releases"
+            echo "curl:"
             echo "$curl_post"
             release_response=$(eval $curl_post)
             echo "$release_response"
