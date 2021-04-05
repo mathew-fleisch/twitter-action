@@ -68,5 +68,6 @@ curl -sL -H "Authorization: token $GIT_TOKEN" \
   | jq -r '.assets[] | select(.name == "twitter-action").browser_download_url' \
   | xargs -I {} curl -sL -H "Authorization: token $GIT_TOKEN" -H "Accept:application/octet-stream" -O {}
 chmod +x twitter-action
+echo "Tweet. Tweet. Tweet."
 ./twitter-action -message "This is neat https://github.com/mathew-fleisch/blog"
 ```
